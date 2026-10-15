@@ -1,0 +1,1303 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bullroom VIP · Performance</title>
+<meta name="description" content="Statistiche dei segnali sull'oro della sala Bullroom VIP: win rate, TP presi, stop loss e risultato simulato.">
+<meta name="theme-color" content="#0a1226">
+<meta property="og:title" content="Bullroom VIP · Performance">
+<meta property="og:description" content="Win rate, TP presi e risultati dei segnali sull'oro della sala Bullroom VIP.">
+<meta property="og:image" content="logo.jpg">
+<link rel="icon" href="logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+/* valori che nella dashboard di Claude arrivano dal tema: qui li definisce il sito */
+:root {
+  color-scheme: dark;
+  --font-anthropic-sans: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-anthropic-serif: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --cds-radius: 12px;
+  --cds-pad-xs: .3rem; --cds-pad-sm: .5rem; --cds-pad-md: .85rem; --cds-pad-lg: 1.15rem; --cds-pad-xl: 1.6rem;
+  --cds-gap-xs: .3rem; --cds-gap-sm: .55rem; --cds-gap-md: .85rem; --cds-gap-lg: 1.25rem; --cds-gap-xl: 1.75rem;
+  --cds-font-size-caption: .8rem; --cds-font-size-body: .95rem; --cds-font-size-heading: 1.08rem; --cds-font-size-title: 1.6rem;
+  --cds-font-weight-medium: 600;
+  --cds-dur-slow: .5s; --cds-ease-out: cubic-bezier(.2, .8, .2, 1);
+  --color-bad: #ff6b6b;
+}
+html, body { margin: 0; background: #060c1c; }
+body { font-family: var(--font-anthropic-sans); -webkit-font-smoothing: antialiased; }
+.sito { max-width: 76rem; margin-inline: auto; padding: max(1rem, env(safe-area-inset-top)) clamp(.6rem, 2.5vw, 1.5rem) max(1.5rem, env(safe-area-inset-bottom)); }
+.dash-skeleton { color: transparent !important; background: linear-gradient(90deg, #13213f, #1d2f57, #13213f); background-size: 200% 100%; border-radius: 6px; animation: sk 1.2s linear infinite; }
+@keyframes sk { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .dash-skeleton { animation: none; } }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+/* sostituto minimo dell'API `dash` della dashboard di Claude: dati da data.json, calcoli e filtri locali */
+window.dash = (() => {
+  const sets = {}, calcs = [], subs = [], loaders = {};
+  let params = {};
+  const run = () => { for (const fn of subs) { try { fn(); } catch (e) { console.error(e); } } };
+  const compute = () => {
+    for (const c of calcs) {
+      try { sets[c.id] = { status: 'ok', data: c.fn(...c.inputs.map((i) => (sets[i] || {}).data || [])) }; }
+      catch (e) { sets[c.id] = { status: 'error', data: [], message: String(e) }; }
+    }
+  };
+  fetch('data.json?v=' + Date.now()).then((r) => r.json()).then((rows) => {
+    sets.operazioni = { status: 'ok', data: rows };
+    compute(); run();
+  }).catch((e) => { sets.operazioni = { status: 'error', data: [], message: String(e) }; run(); });
+  let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(run, 150); });
+  return {
+    data: (id) => sets[id] || { status: 'loading', data: [] },
+    onData: (fn) => { subs.push(fn); fn(); },
+    calc: (id, def) => { calcs.push({ id, inputs: def.inputs, fn: def.fn }); if (sets.operazioni) { compute(); } },
+    loader: (id, def) => { loaders[id] = def; },
+    params: () => ({ ...params }),
+    setParams: (p) => { params = { ...params, ...p }; run(); },
+    resetParams: () => { params = {}; run(); },
+    setLink: () => {}, refresh: () => {},
+    colors: ['#e2b04a', '#3d7bff', '#3fd18b', '#ff6b6b', '#9aa7c2', '#f3d38a', '#7aa5ff', '#c98f2a'],
+  };
+})();
+</script>
+</head>
+<body>
+<main class="sito" id="dash-root">
+<style>
+
+/* Bullroom: una sala di trading di notte. Blu notte profondo, oro come accento, numeri grandi in serif.
+
+   Layout: intestazione con linguette, fila di 6 cifre, curva del conto a tutta larghezza,
+
+   due grafici affiancati, tabella delle operazioni, nota sul metodo. Un solo aspetto scuro, scelto apposta. */
+
+.br {
+
+  --br-night: #0a1226;
+
+  --br-deep: #0f1a33;
+
+  --br-panel: #13213f;
+
+  --br-line: #24365e;
+
+  --br-ink: #eef2fb;
+
+  --br-muted: #93a3c4;
+
+  --br-gold: #e2b04a;
+
+  --br-gold-soft: #f3d38a;
+
+  --br-blue: #3d7bff;
+
+  --br-win: #3fd18b;
+
+  --br-loss: #ff6b6b;
+
+  --br-even: #9aa7c2;
+
+  --br-sans: var(--font-anthropic-sans);
+
+  --br-serif: var(--font-anthropic-serif);
+
+  color-scheme: dark;
+
+  color: var(--br-ink);
+
+  background:
+
+    radial-gradient(60rem 26rem at 85% -10%, rgba(61, 123, 255, .22), transparent 60%),
+
+    radial-gradient(40rem 22rem at 0% 0%, rgba(226, 176, 74, .12), transparent 60%),
+
+    var(--br-night);
+
+  border: 1px solid var(--br-line);
+
+  border-radius: calc(var(--cds-radius) * 2);
+
+  padding: clamp(1rem, 3vw, 2.25rem);
+
+  font-family: var(--br-sans);
+
+  display: grid;
+
+  gap: var(--cds-gap-xl);
+
+  overflow: hidden;
+
+  position: relative;
+
+  isolation: isolate;
+
+}
+
+/* il logo Bullroom: grande e sfumato dietro la pagina, piccolo accanto al titolo */
+
+.br-watermark { position: absolute; z-index: -1; pointer-events: none; top: -4rem; right: -6rem; width: min(78%, 36rem); aspect-ratio: 1; border-radius: 50%; opacity: .09; filter: saturate(1.3); }
+
+.br-watermark img { width: 100%; height: 100%; border-radius: 50%; display: block; }
+
+.br-brand { display: flex; align-items: center; gap: clamp(.75rem, 2vw, 1.25rem); min-width: 0; }
+.br-brand > div { min-width: 0; }
+/* nessun elemento può allargare la pagina oltre lo schermo */
+.br { grid-template-columns: minmax(0, 1fr); max-width: 100%; box-sizing: border-box; }
+.br > *, .br-head > div, .br-grid2 > *, .br-card { min-width: 0; }
+
+.br-logo { flex: none; width: clamp(3.75rem, 9vw, 5.5rem); aspect-ratio: 1; border-radius: 50%; box-shadow: 0 0 0 2px var(--br-gold), 0 0 0 6px rgba(226, 176, 74, .12), 0 14px 34px -12px rgba(61, 123, 255, .8); }
+
+.br-logo img { width: 100%; height: 100%; border-radius: 50%; display: block; }
+
+.br-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--cds-gap-md); }
+
+.br-head > div { min-width: 0; }
+
+.br-eyebrow { display: block; font-size: var(--cds-font-size-caption); letter-spacing: .14em; text-transform: uppercase; color: var(--br-gold); line-height: 1.5; }
+.br-eyebrow .br-dot { display: inline-block; vertical-align: .1em; margin-right: .5rem; }
+
+.br-dot { width: .5rem; height: .5rem; border-radius: 50%; background: var(--br-blue); box-shadow: 0 0 0 0 rgba(61, 123, 255, .7); }
+
+.br-title { margin: .35rem 0 0; font-family: var(--br-serif); font-weight: 400; font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.05; text-wrap: balance; }
+
+.br-title span { color: var(--br-gold); }
+
+.br-take { margin: .6rem 0 0; color: var(--br-muted); max-width: 62ch; font-size: var(--cds-font-size-body); line-height: 1.5; }
+
+.br-take b { color: var(--br-ink); font-weight: 600; }
+
+.br-tabs { display: inline-flex; padding: .25rem; gap: .25rem; background: var(--br-deep); border: 1px solid var(--br-line); border-radius: 999px; }
+
+.br-tab { appearance: none; border: 0; background: transparent; color: var(--br-muted); font: inherit; font-size: var(--cds-font-size-body); padding: .45rem 1rem; border-radius: 999px; transition: background .2s, color .2s; }
+
+.br-tab:hover { color: var(--br-ink); }
+
+.br-tab[aria-selected="true"] { background: linear-gradient(135deg, var(--br-gold), #c98f2a); color: var(--br-night); font-weight: 600; }
+
+.br-tab:focus-visible { outline: 2px solid var(--br-gold-soft); outline-offset: 2px; }
+
+.br-sim { display: grid; gap: var(--cds-gap-md); }
+
+.br-sim h2 { margin: 0; font-family: var(--br-serif); font-weight: 400; font-size: clamp(1.4rem, 3vw, 1.9rem); }
+
+.br-sim h2 span { color: var(--br-gold); }
+
+.br-choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--cds-gap-md); }
+
+.br-choice { appearance: none; cursor: pointer; text-align: left; font: inherit; color: var(--br-ink); background: var(--br-deep); border: 1px solid var(--br-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: .3rem; transition: border-color .2s, box-shadow .2s, transform .2s; }
+
+.br-choice:hover { border-color: rgba(226, 176, 74, .5); transform: translateY(-1px); }
+
+.br-choice:focus-visible { outline: 2px solid var(--br-gold-soft); outline-offset: 2px; }
+
+.br-choice[aria-pressed="true"] { border-color: var(--br-gold); box-shadow: 0 0 0 1px var(--br-gold), 0 18px 40px -24px rgba(226, 176, 74, .7); background: linear-gradient(180deg, rgba(226, 176, 74, .10), rgba(226, 176, 74, 0)), var(--br-deep); }
+
+.br-choice-name { font-size: var(--cds-font-size-caption); letter-spacing: .1em; text-transform: uppercase; color: var(--br-gold); font-weight: 600; }
+
+.br-choice-lots { font-size: var(--cds-font-size-caption); color: var(--br-muted); }
+
+.br-choice-name { font-size: var(--cds-font-size-body); }
+
+.br-reveal { position: relative; border: 1px dashed var(--br-line); border-radius: var(--cds-radius); min-height: 9.5rem; display: grid; place-items: center; text-align: center; padding: var(--cds-pad-lg); overflow: hidden; }
+
+.br-reveal-hint { margin: 0; color: var(--br-muted); font-size: var(--cds-font-size-body); }
+
+.br-reveal-body { display: none; gap: .4rem; justify-items: center; }
+
+.br-reveal.is-on { border-style: solid; border-color: rgba(226, 176, 74, .55); background: radial-gradient(30rem 10rem at 50% 0%, rgba(226, 176, 74, .14), transparent 70%), var(--br-deep); }
+
+.br-reveal.is-on .br-reveal-hint { display: none; }
+
+.br-reveal.is-on .br-reveal-body { display: grid; }
+
+.br-reveal-pre { color: var(--br-muted); font-size: var(--cds-font-size-body); }
+
+.br-reveal-pre b { color: var(--br-gold); font-weight: 600; text-transform: lowercase; }
+
+.br-reveal-num { font-family: var(--br-serif); font-size: clamp(2.1rem, 10vw, 4.6rem); line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.br-reveal-meta { font-size: var(--cds-font-size-caption); color: var(--br-muted); font-variant-numeric: tabular-nums; }
+
+.br-reveal-meta b { color: var(--br-ink); font-weight: 500; }
+
+.br-reveal-meta b.br-neg { color: var(--br-loss); }
+
+@media (prefers-reduced-motion: no-preference) {
+
+  .br-reveal.is-pop .br-reveal-body { animation: br-pop .65s var(--cds-ease-out) both; }
+
+  .br-reveal.is-pop::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(110deg, transparent 30%, rgba(243, 211, 138, .22) 50%, transparent 70%); background-size: 250% 100%; animation: br-sweep 1.1s ease-out both; }
+
+}
+
+@keyframes br-pop { 0% { opacity: 0; transform: translateY(14px) scale(.94); } 60% { opacity: 1; transform: translateY(-2px) scale(1.02); } 100% { transform: none; } }
+
+@keyframes br-sweep { from { background-position: 150% 0; } to { background-position: -100% 0; } }
+
+.br-quote { margin: 0; display: grid; gap: .4rem; padding: var(--cds-pad-md) 0 var(--cds-pad-md) var(--cds-pad-lg); border-left: 3px solid var(--br-gold); }
+.br-quote p { margin: 0; color: var(--br-muted); font-size: var(--cds-font-size-body); line-height: 1.5; }
+.br-quote .br-quote-main { color: var(--br-ink); font-family: var(--br-serif); font-size: clamp(1.15rem, 2.4vw, 1.45rem); line-height: 1.35; text-wrap: balance; }
+.br-quote .br-quote-main span { color: var(--br-gold); }
+.br-warn { display: grid; gap: .35rem; border: 1px solid rgba(255, 107, 107, .45); background: rgba(255, 107, 107, .07); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); font-size: var(--cds-font-size-body); line-height: 1.5; }
+
+.br-warn strong { color: var(--br-loss); }
+
+.br-warn p { margin: 0; }
+
+
+
+/* 6 caselle sempre pari: 3 + 3 su PC e tablet, 6 in fila sugli schermi larghi, 2 + 2 + 2 sul telefono */
+.br-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--cds-gap-md); }
+@media (min-width: 90rem) { .br-kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+
+.br-kpi { background: linear-gradient(180deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, 0)), var(--br-panel); border: 1px solid var(--br-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: .35rem; align-content: start; min-width: 0; }
+
+.br-kpi-label { font-size: var(--cds-font-size-caption); letter-spacing: .08em; text-transform: uppercase; color: var(--br-muted); }
+
+.br-kpi-value { font-family: var(--br-serif); font-weight: 400; font-size: clamp(1.7rem, 3.2vw, 2.35rem); line-height: 1.05; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.br-kpi-note { font-size: var(--cds-font-size-caption); color: var(--br-muted); font-variant-numeric: tabular-nums; }
+
+.br-kpi-note b { color: var(--br-ink); font-weight: 500; }
+
+.br-kpi.is-hero { border-color: rgba(226, 176, 74, .55); box-shadow: 0 0 0 1px rgba(226, 176, 74, .15), 0 18px 40px -24px rgba(226, 176, 74, .55); }
+
+.br-pos { color: var(--br-win); }
+
+.br-neg { color: var(--br-loss); }
+
+.br-goldtxt { color: var(--br-gold); }
+
+
+
+.br-card { background: var(--br-panel); border: 1px solid var(--br-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-sm); min-width: 0; }
+
+.br-card h2 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+
+.br-card .br-sub { margin: 0; font-size: var(--cds-font-size-caption); color: var(--br-muted); }
+
+.br-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--cds-gap-md); }
+
+.br-chart { position: relative; min-height: 260px; }
+
+.br-chart.is-tall { min-height: 300px; }
+
+.br-chart svg { display: block; overflow: visible; }
+
+.br-chart text { fill: var(--br-muted); font-size: 11px; font-family: var(--br-sans); }
+
+.br-tip { position: absolute; pointer-events: none; background: #0b1530; border: 1px solid var(--br-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); color: var(--br-ink); box-shadow: 0 10px 30px -12px rgba(0, 0, 0, .6); white-space: nowrap; z-index: 2; }
+
+.br-tip .k { color: var(--br-muted); display: block; }
+
+.br-legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; font-size: var(--cds-font-size-caption); color: var(--br-muted); }
+
+.br-legend i { display: inline-block; width: .6rem; height: .6rem; border-radius: 2px; margin-right: .35rem; vertical-align: -1px; }
+
+
+
+.br-tablewrap { max-height: 28rem; overflow: auto; border-radius: var(--cds-radius); }
+
+.br-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+
+.br-table th { position: sticky; top: 0; background: var(--br-panel); text-align: left; font-weight: 500; color: var(--br-muted); padding: .55rem .6rem; border-bottom: 1px solid var(--br-line); white-space: nowrap; }
+
+.br-table td { padding: .5rem .6rem; border-bottom: 1px solid rgba(36, 54, 94, .6); white-space: nowrap; }
+
+.br-table td.num, .br-table th.num { text-align: right; }
+
+.br-table tr:hover td { background: rgba(61, 123, 255, .07); }
+
+.br-pill { display: inline-block; padding: .1rem .5rem; border-radius: 999px; font-size: .72rem; letter-spacing: .02em; border: 1px solid currentColor; }
+
+.br-pill.vinta { color: var(--br-win); } .br-pill.persa { color: var(--br-loss); }
+
+.br-pill.pari, .br-pill.aperta { color: var(--br-even); } .br-pill.non-entrata { color: var(--br-muted); opacity: .8; }
+
+@media (max-width: 40rem) {
+  .br-hide-sm { display: none; }
+  /* telefono: meno margini, più spazio ai numeri */
+  .br { padding: 1rem .85rem; border-radius: var(--cds-radius); gap: var(--cds-gap-lg); }
+  .br-card, .br-kpi { padding: var(--cds-pad-md); }
+  .br-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cds-gap-sm); }
+  .br-kpi-value { font-size: 1.65rem; }
+  .br-watermark { width: 95%; top: -2rem; right: -4rem; }
+  .br-choices { grid-template-columns: 1fr; gap: var(--cds-gap-sm); }
+  .br-reveal { min-height: 8rem; padding: var(--cds-pad-md); }
+  .br-table th, .br-table td { padding: .45rem .4rem; }
+  .br-chart { min-height: 220px; }
+}
+
+
+
+.br-note { font-size: var(--cds-font-size-caption); color: var(--br-muted); line-height: 1.6; max-width: 80ch; display: grid; gap: .5rem; }
+
+.br-note p { margin: 0; }
+
+.br-note strong { color: var(--br-ink); font-weight: 600; }
+
+.br-fail { display: flex; align-items: center; justify-content: center; gap: .45rem; height: 100%; min-height: inherit; color: var(--br-muted); font-size: var(--cds-font-size-caption); }
+
+.br-fail::before { content: ""; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); }
+
+.br [data-dash-source-state=empty] { color: transparent; }
+
+.br [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+
+
+
+@media (prefers-reduced-motion: no-preference) {
+
+  .br-dot { animation: br-pulse 2.2s var(--cds-ease-out) infinite; }
+
+  .br-watermark { animation: br-breathe 14s ease-in-out infinite; }
+
+  .br-logo { animation: br-float 5s ease-in-out infinite; }
+
+  .br-title span { background: linear-gradient(90deg, var(--br-gold) 0%, var(--br-gold-soft) 45%, var(--br-gold) 70%); background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: br-shine 6s linear infinite; }
+
+  .br.is-in .br-kpi { animation: br-rise var(--cds-dur-slow) var(--cds-ease-out) both; }
+
+  .br.is-in .br-kpi:nth-child(2) { animation-delay: 60ms; } .br.is-in .br-kpi:nth-child(3) { animation-delay: 120ms; }
+
+  .br.is-in .br-kpi:nth-child(4) { animation-delay: 180ms; } .br.is-in .br-kpi:nth-child(5) { animation-delay: 240ms; }
+
+  .br.is-in .br-kpi:nth-child(6) { animation-delay: 300ms; }
+
+  .br-draw { stroke-dasharray: var(--len); stroke-dashoffset: var(--len); animation: br-draw 1.6s var(--cds-ease-out) forwards; }
+
+  .br-grow { transform-box: fill-box; transform-origin: 50% 100%; animation: br-grow .7s var(--cds-ease-out) both; }
+
+  .br-grow.down { transform-origin: 50% 0%; }
+
+  .br-fadein { animation: br-fade .9s var(--cds-ease-out) both; }
+
+}
+
+@keyframes br-pulse { 0% { box-shadow: 0 0 0 0 rgba(61, 123, 255, .7); } 70% { box-shadow: 0 0 0 .6rem rgba(61, 123, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(61, 123, 255, 0); } }
+
+@keyframes br-shine { to { background-position: -220% 0; } }
+
+@keyframes br-breathe { 0%, 100% { transform: scale(1) rotate(0deg); opacity: .08; } 50% { transform: scale(1.05) rotate(-3deg); opacity: .12; } }
+
+@keyframes br-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+@keyframes br-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+@keyframes br-draw { to { stroke-dashoffset: 0; } }
+
+@keyframes br-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+@keyframes br-fade { from { opacity: 0; } to { opacity: 1; } }
+
+</style>
+
+
+
+<div class="br" id="bullroom">
+
+  <div class="br-watermark" aria-hidden="true"><img id="logo-sfondo" alt=""></div>
+
+  <header class="br-head" id="intestazione">
+
+    <div>
+
+      <div class="br-brand">
+
+        <div class="br-logo"><img id="logo" alt="Logo Bullroom" src="logo.jpg"></div>
+
+        <div>
+
+          <div class="br-eyebrow"><span class="br-dot"></span>Bullroom VIP · segnali dal <span data-source="riepilogo" data-field="dal" data-where="simbolo=XAUUSD">—</span> al <span data-source="riepilogo" data-field="al" data-where="simbolo=XAUUSD">—</span></div>
+
+          <h1 class="br-title">Performance <span>Bullroom VIP</span></h1>
+
+        </div>
+
+      </div>
+
+      <p class="br-take" id="sintesi" data-source="riepilogo">—</p>
+
+    </div>
+
+    <div class="br-tabs" aria-label="Strumento">
+
+      <span class="br-tab" aria-selected="true">Oro · XAUUSD</span>
+
+    </div>
+
+  </header>
+
+
+
+  <section class="br-kpis" id="cifre" aria-label="Cifre principali">
+
+    <div class="br-kpi is-hero">
+
+      <div class="br-kpi-label">Win rate</div>
+
+      <div class="br-kpi-value br-goldtxt dash-skeleton" data-source="riepilogo" data-field="win_rate" data-where="simbolo=XAUUSD">—</div>
+
+      <div class="br-kpi-note">calcolato al TP1</div>
+
+    </div>
+
+    <div class="br-kpi">
+
+      <div class="br-kpi-label">Segnali</div>
+
+      <div class="br-kpi-value dash-skeleton" data-source="riepilogo" data-field="segnali" data-where="simbolo=XAUUSD">—</div>
+
+      <div class="br-kpi-note">pubblicati in sala</div>
+
+    </div>
+
+    <div class="br-kpi">
+
+      <div class="br-kpi-label">TP presi</div>
+
+      <div class="br-kpi-value br-pos dash-skeleton" data-source="riepilogo" data-field="tp_presi" data-where="simbolo=XAUUSD">—</div>
+
+      <div class="br-kpi-note">take profit raggiunti</div>
+
+    </div>
+
+    <div class="br-kpi">
+
+      <div class="br-kpi-label">Stop loss</div>
+
+      <div class="br-kpi-value br-neg dash-skeleton" data-source="riepilogo" data-field="stop" data-where="simbolo=XAUUSD">—</div>
+
+      <div class="br-kpi-note"><b data-source="riepilogo" data-field="pari" data-where="simbolo=XAUUSD">—</b> chiuse a pareggio</div>
+
+    </div>
+
+    <div class="br-kpi">
+
+      <div class="br-kpi-label">Full TP</div>
+
+      <div class="br-kpi-value br-goldtxt dash-skeleton" data-source="riepilogo" data-field="full_tp" data-where="simbolo=XAUUSD">—</div>
+
+      <div class="br-kpi-note">segnali con tutti i TP presi</div>
+
+    </div>
+
+    <div class="br-kpi">
+      <div class="br-kpi-label">TP medi</div>
+      <div class="br-kpi-value br-pos dash-skeleton" data-source="riepilogo" data-field="tp_medi" data-where="simbolo=XAUUSD">—</div>
+      <div class="br-kpi-note">presi in media per segnale</div>
+    </div>
+
+  </section>
+
+
+
+  <section class="br-card br-sim" id="rischio">
+
+    <h2>Quanto avresti fatto con <span>1.000 €</span>?</h2>
+
+    <p class="br-sub">Scegli il rischio: stessi segnali, lotti diversi.</p>
+
+    <div class="br-choices" role="group" aria-label="Livello di rischio">
+
+      <button type="button" class="br-choice" data-rischio="basso" aria-pressed="false">
+
+        <span class="br-choice-name">Rischio basso</span>
+
+        <span class="br-choice-lots">0,01 lotti per TP</span>
+
+      </button>
+
+      <button type="button" class="br-choice" data-rischio="medio" aria-pressed="false">
+
+        <span class="br-choice-name">Rischio medio</span>
+
+        <span class="br-choice-lots">0,03 lotti per TP</span>
+
+      </button>
+
+      <button type="button" class="br-choice" data-rischio="alto" aria-pressed="false">
+
+        <span class="br-choice-name">Rischio alto</span>
+
+        <span class="br-choice-lots">0,05 lotti per TP</span>
+
+      </button>
+
+    </div>
+
+    <div class="br-reveal" id="rivelazione" aria-live="polite">
+
+      <p class="br-reveal-hint">👆 Tocca un livello per scoprirlo</p>
+
+      <div class="br-reveal-body">
+
+        <span class="br-reveal-pre">Con rischio <b id="rivela-livello">—</b> avresti fatto</span>
+
+        <span class="br-reveal-num br-anim" data-source="riepilogo" data-field="risultato_eur" data-where="simbolo=XAUUSD">—</span>
+
+        <span class="br-reveal-meta">conto finale <b data-source="riepilogo" data-field="conto_finale" data-where="simbolo=XAUUSD">—</b> · <span data-source="riepilogo" data-field="rendimento" data-where="simbolo=XAUUSD">—</span></span>
+
+      </div>
+
+    </div>
+
+    <blockquote class="br-quote" id="avvertenza">
+      <p>Più lotti vuol dire guadagni più grandi, ma anche perdite più grandi.</p>
+      <p class="br-quote-main">Nel trading resiste di più non chi guadagna di più, ma chi <span>perde di meno</span>.</p>
+    </blockquote>
+
+  </section>
+
+
+
+  <section class="br-card" id="curva-conto">
+
+    <h2>Il conto, operazione dopo operazione</h2>
+
+    <p class="br-sub">Saldo simulato di un conto da 1.000 € con <span id="lotti-testo">0,01</span> lotti per ogni TP. Ogni punto è un'operazione chiusa: verde se in guadagno, rosso se in perdita.</p>
+
+    <div class="br-chart is-tall" id="grafico-conto" data-source="conto"></div>
+
+  </section>
+
+
+
+  <div class="br-grid2">
+
+    <section class="br-card" id="risultati-operazioni">
+
+      <h2>Risultato di ogni segnale</h2>
+
+      <p class="br-sub">Euro guadagnati o persi per segnale, in ordine di data.</p>
+
+      <div class="br-chart" id="grafico-barre" data-source="operazioni risultati_rischio"></div>
+
+    </section>
+
+    <section class="br-card" id="esiti">
+
+      <h2>Come sono finiti i segnali</h2>
+
+      <p class="br-sub">Segnali chiusi in guadagno, in perdita, a pareggio o ancora aperti.</p>
+
+      <div class="br-chart" id="grafico-esiti" data-source="riepilogo"></div>
+
+      <div class="br-legend" id="legenda-esiti"></div>
+
+    </section>
+
+  </div>
+
+
+
+  <section class="br-card" id="elenco">
+
+    <h2>Tutte le operazioni</h2>
+
+    <p class="br-sub">Ogni segnale della sala con il suo esito sui prezzi di mercato.</p>
+
+    <div class="br-tablewrap">
+
+      <table class="br-table" id="tabella" data-source="operazioni" data-row-key="n">
+
+        <thead><tr>
+
+          <th data-field="n" class="num">#</th>
+
+          <th data-field="data">Data</th>
+
+          <th data-field="simbolo" class="br-hide-sm">Strumento</th>
+
+          <th data-field="direzione">Direzione</th>
+
+          <th data-field="prezzo" class="num br-hide-sm">Entrata</th>
+
+          <th data-field="tp_presi" class="num">TP presi</th>
+
+          <th data-field="tp_totali" class="num br-hide-sm">TP totali</th>
+
+          <th data-field="esito">Esito</th>
+
+          <th data-field="stato">Stato</th>
+
+          <th data-source="risultati_rischio" data-field="risultato_basso" class="num" id="th-risultato">Risultato</th>
+
+        </tr></thead>
+
+        <tbody></tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+
+
+  <footer class="br-note" id="metodo">
+
+    <p><strong>Come sono calcolati i numeri.</strong> I segnali sono quelli sull'oro pubblicati nella sala Bullroom VIP nel periodo indicato in alto; la pagina si aggiorna ogni sera. Ogni segnale è misurato sui prezzi storici al minuto: entrata al prezzo indicato nel segnale, un ordine da 0,01 lotti per ogni TP, stop loss e take profit come pubblicati. Lo stop va a pareggio al TP2, oppure prima se la sala lo indica; valgono anche le altre indicazioni date in sala (stop spostato, chiusura). Se in un minuto il prezzo tocca sia lo stop sia un TP, viene contato lo stop.</p>
+
+    <p><strong>Rischio basso, medio, alto.</strong> Sono gli stessi segnali con 0,01, 0,03 o 0,05 lotti per ogni TP: guadagni e perdite in euro si moltiplicano per 3 o per 5.</p>
+
+    <p><strong>Risultati simulati</strong> sui prezzi di mercato, non di un conto reale; i risultati passati non garantiscono quelli futuri. Il trading con leva comporta il rischio di perdere il capitale.</p>
+
+  </footer>
+
+</div>
+
+
+
+<script>
+
+(() => {
+
+  const CAPITALE = 1000;
+
+  const euro = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' });
+
+  const euroSign = (v) => (v > 0 ? '+' : '') + euro.format(v);
+
+  const pct = (v) => (v * 100).toLocaleString('it-IT', { maximumFractionDigits: 0 }) + '%';
+
+  const pctSign = (v) => (v > 0 ? '+' : '') + (v * 100).toLocaleString('it-IT', { maximumFractionDigits: 1 }) + '%';
+
+
+
+  dash.calc('riepilogo', {
+
+    title: 'Riepilogo per livello di rischio',
+
+    description: 'Conta segnali, TP e stop e somma i risultati su un conto da 1.000 €, a 0,01 (basso), 0,03 (medio) e 0,05 (alto) lotti per TP.',
+
+    inputs: ['operazioni'],
+
+    fn: (operazioni) => {
+
+      const livelli = [['basso', 0.01, 1], ['medio', 0.03, 3], ['alto', 0.05, 5]];
+
+      const simbolo = 'XAUUSD';
+
+      const ops = operazioni.filter((o) => o.simbolo === simbolo);
+
+      const entrate = ops.filter((o) => o.stato !== 'non entrata');
+
+      const base = entrate.reduce((s, o) => s + Number(o.risultato_eur), 0);
+
+      return livelli.map(([livello, lotti, k]) => {
+
+        let conto = 1000, picco = 1000, calo = 0;
+
+        for (const o of entrate) {
+
+          conto += Number(o.risultato_eur) * k;
+
+          picco = Math.max(picco, conto);
+
+          calo = Math.min(calo, conto - picco);
+
+        }
+
+        const risultato = Math.round(base * k * 100) / 100;
+
+        return {
+
+          simbolo, livello, lotti, segnali: ops.length, entrate: entrate.length,
+
+          vinte: ops.filter((o) => o.stato === 'vinta').length,
+
+          perse: ops.filter((o) => o.stato === 'persa').length,
+
+          pari: ops.filter((o) => o.stato === 'pari').length,
+
+          aperte: ops.filter((o) => o.stato === 'aperta').length,
+
+          non_entrate: ops.length - entrate.length,
+
+          stop: ops.reduce((s, o) => s + Number(o.stop), 0),
+
+          tp_presi: entrate.reduce((s, o) => s + Number(o.tp_presi), 0),
+
+          tp_totali: entrate.reduce((s, o) => s + Number(o.tp_totali), 0),
+
+          a_tp1: ops.filter((o) => Number(o.tp_presi) >= 1).length,
+
+          win_rate: ops.length ? ops.filter((o) => Number(o.tp_presi) >= 1).length / ops.length : 0,
+
+          risultato_eur: risultato,
+
+          rendimento: risultato / 1000,
+
+          calo_max: Math.round(calo * 100) / 100,
+
+          full_tp: ops.filter((o) => String(o.esito).startsWith('FULL')).length,
+          tp_medi: ops.length ? Math.round(ops.reduce((s, o) => s + Number(o.tp_presi), 0) / ops.length * 10) / 10 : 0,
+
+          dal: ops.length ? String(ops[0].data).slice(0, 10) : null,
+
+          al: ops.length ? String(ops[ops.length - 1].data).slice(0, 10) : null,
+
+          conto_finale: Math.round((1000 + risultato) * 100) / 100,
+
+        };
+
+      });
+
+    },
+
+  });
+
+
+
+  dash.calc('conto', {
+
+    title: 'Saldo del conto nel tempo',
+
+    description: 'Saldo progressivo di un conto da 1.000 € dopo ogni operazione entrata, per livello di rischio (risultato a 0,01 lotti moltiplicato per 1, 3 o 5).',
+
+    inputs: ['operazioni'],
+
+    fn: (operazioni) => {
+
+      const livelli = [['basso', 1], ['medio', 3], ['alto', 5]];
+
+      const out = [];
+
+      for (const [livello, k] of livelli) {
+
+        let conto = 1000;
+
+        out.push({ simbolo: 'XAUUSD', livello, n: 0, data: null, conto, risultato_eur: 0 });
+
+        for (const o of operazioni) {
+
+          if (o.stato === 'non entrata' || o.simbolo !== 'XAUUSD') continue;
+
+          const r = Math.round(Number(o.risultato_eur) * k * 100) / 100;
+
+          conto = Math.round((conto + r) * 100) / 100;
+
+          out.push({ simbolo: 'XAUUSD', livello, n: Number(o.n), data: o.data, conto, risultato_eur: r });
+
+        }
+
+      }
+
+      return out;
+
+    },
+
+  });
+
+
+
+  dash.calc('risultati_rischio', {
+
+    title: 'Risultato di ogni segnale per rischio',
+
+    description: 'Euro di ogni segnale a 0,01 lotti per TP (basso), moltiplicati per 3 (medio, 0,03 lotti) e per 5 (alto, 0,05 lotti).',
+
+    inputs: ['operazioni'],
+
+    fn: (operazioni) => operazioni.map((o) => ({
+
+      n: Number(o.n),
+
+      risultato_basso: Math.round(Number(o.risultato_eur) * 100) / 100,
+
+      risultato_medio: Math.round(Number(o.risultato_eur) * 3 * 100) / 100,
+
+      risultato_alto: Math.round(Number(o.risultato_eur) * 5 * 100) / 100,
+
+    })),
+
+  });
+
+
+
+  const root = document.getElementById('bullroom');
+
+  document.getElementById('logo-sfondo').src = document.getElementById('logo').src;   // stesso logo, una sola copia nella pagina
+
+  const NOMI = { XAUUSD: 'Oro' };
+
+  const sel = 'XAUUSD';
+
+  const LOTTI = { basso: '0,01', medio: '0,03', alto: '0,05' };
+
+  const livello = () => (LOTTI[dash.params().rischio] ? dash.params().rischio : 'basso');
+
+  const bottoni = [...document.querySelectorAll('#rischio [data-rischio]')];
+
+  let rivelato = false, animaLivello = null, contaAttiva = false, contaGiro = 0;
+
+  bottoni.forEach((btn) => btn.addEventListener('click', () => {
+
+    rivelato = true;
+
+    animaLivello = btn.dataset.rischio;
+
+    if (btn.dataset.rischio === livello()) draw();
+
+    dash.setParams({ rischio: btn.dataset.rischio });
+
+  }));
+
+  function contaFino(el, fine) {
+
+    const giro = ++contaGiro;
+
+    if (!window.matchMedia('(prefers-reduced-motion: no-preference)').matches) { contaAttiva = false; el.textContent = euroSign(fine); return; }
+
+    contaAttiva = true;
+
+    const t0 = performance.now(), durata = 1400;
+
+    const passo = (t) => {
+
+      if (giro !== contaGiro) return;
+
+      const p = Math.min(1, (t - t0) / durata);
+
+      const e = 1 - Math.pow(1 - p, 3);
+
+      el.textContent = euroSign(p < 1 ? Math.round(fine * e) : fine);
+
+      if (p < 1) requestAnimationFrame(passo); else contaAttiva = false;
+
+    };
+
+    requestAnimationFrame(passo);
+
+  }
+
+  let animated = false;
+
+
+
+  const fail = (el) => { el.replaceChildren(); const d = document.createElement('div'); d.className = 'br-fail'; d.textContent = 'Failed to load'; el.append(d); };
+
+
+
+  function draw() {
+
+    const op = dash.data('operazioni');
+
+    const rp = dash.data('riepilogo');
+
+    const ct = dash.data('conto');
+
+    const rr = dash.data('risultati_rischio');
+
+    const liv = livello();
+
+    document.getElementById('lotti-testo').textContent = LOTTI[liv];
+
+    document.getElementById('th-risultato').setAttribute('data-field', 'risultato_' + liv);
+
+    const ok = op.status === 'ok' && rp.status === 'ok' && ct.status === 'ok' && rr.status === 'ok';
+
+    root.querySelectorAll('[data-source="riepilogo"][data-where]:not(.br-risk-res)').forEach((el) => el.setAttribute('data-where', 'simbolo=' + sel + '&livello=' + liv));
+
+    if (!ok) {
+
+      if ([op, rp, ct, rr].some((d) => d.status === 'error')) {
+
+        ['grafico-conto', 'grafico-barre', 'grafico-esiti'].forEach((id) => fail(document.getElementById(id)));
+
+      }
+
+      return;
+
+    }
+
+    root.querySelectorAll('.dash-skeleton').forEach((el) => el.classList.remove('dash-skeleton'));
+
+    const r = rp.data.find((x) => x.simbolo === sel && x.livello === liv);
+
+    const first = !animated;
+
+    if (first) { animated = true; root.classList.add('is-in'); }
+
+
+
+    // cifre
+
+    const set = (field, text, cls) => {
+
+      root.querySelectorAll(`[data-field="${field}"][data-source="riepilogo"]:not(.br-risk-res):not(.br-anim)`).forEach((el) => {
+
+        el.textContent = text;
+
+        if (cls !== undefined && el.classList.contains('br-kpi-value')) { el.classList.remove('br-pos', 'br-neg'); if (cls) el.classList.add(cls); }
+
+      });
+
+    };
+
+    set('risultato_eur', euroSign(r.risultato_eur), r.risultato_eur >= 0 ? 'br-pos' : 'br-neg');
+
+    set('rendimento', pctSign(r.rendimento));
+
+    set('calo_max', r.calo_max < 0 ? euro.format(r.calo_max) : euro.format(0));
+
+
+
+    set('conto_finale', euro.format(r.conto_finale));
+
+
+
+    // rivelazione: compare solo dopo aver toccato un livello, col numero che sale
+
+    bottoni.forEach((btn) => btn.setAttribute('aria-pressed', String(rivelato && btn.dataset.rischio === liv)));
+
+    const box = document.getElementById('rivelazione');
+
+    const num = box.querySelector('.br-reveal-num');
+
+    box.classList.toggle('is-on', rivelato);
+
+    document.getElementById('rivela-livello').textContent = liv;
+
+    num.classList.remove('br-pos', 'br-neg');
+
+    num.classList.add(r.risultato_eur >= 0 ? 'br-pos' : 'br-neg');
+
+    if (rivelato && animaLivello === liv) {
+
+      animaLivello = null;
+
+      box.classList.remove('is-pop'); void box.offsetWidth; box.classList.add('is-pop');
+
+      contaFino(num, r.risultato_eur);
+
+    } else if (!contaAttiva) {
+
+      num.textContent = euroSign(r.risultato_eur);
+
+    }
+
+    set('win_rate', pct(r.win_rate));
+
+    set('segnali', String(r.segnali));
+
+    set('tp_presi', String(r.tp_presi));
+
+    set('stop', String(r.stop));
+
+    set('pari', String(r.pari));
+
+    set('full_tp', String(r.full_tp));
+    set('tp_medi', r.tp_medi.toLocaleString('it-IT', { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
+
+    const giorno = (d) => d ? new Date(d + 'T12:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'long' }) : '—';
+
+    set('dal', giorno(r.dal));
+
+    set('al', giorno(r.al));
+
+
+
+    // sintesi
+
+    const s = document.getElementById('sintesi');
+
+    s.replaceChildren();
+
+    const b = (t) => { const e = document.createElement('b'); e.textContent = t; return e; };
+
+    s.append(NOMI[sel] + ': ', b(r.a_tp1 + ' segnali su ' + r.segnali + ' arrivati al TP1'), ' (' + pct(r.win_rate) + '), con ',
+
+      b(r.tp_presi + ' TP presi'), ', ' + r.stop + ' stop loss e ', b(r.full_tp + ' full TP'), '. Scegli il rischio qui sotto per vedere quanto avresti fatto.');
+
+
+
+    const scalati = new Map(rr.data.map((x) => [Number(x.n), Number(x['risultato_' + liv])]));
+
+    const ops = op.data.filter((o) => sel === 'TUTTI' || o.simbolo === sel)
+
+      .map((o) => ({ ...o, risultato_eur: scalati.has(Number(o.n)) ? scalati.get(Number(o.n)) : Number(o.risultato_eur) }));
+
+    drawEquity(ct.data.filter((x) => x.simbolo === sel && x.livello === liv), first);
+
+    drawBars(ops, first);
+
+    drawDonut(r, first);
+
+    drawTable(ops);
+
+  }
+
+
+
+  function tipAt(box, html, x, y) {
+
+    let tip = box.querySelector('.br-tip');
+
+    if (!tip) { tip = document.createElement('div'); tip.className = 'br-tip'; box.append(tip); }
+
+    tip.replaceChildren(...html);
+
+    tip.hidden = false;
+
+    const w = tip.offsetWidth, h = tip.offsetHeight, W = box.clientWidth;
+
+    tip.style.left = Math.max(0, Math.min(W - w, x - w / 2)) + 'px';
+
+    tip.style.top = Math.max(0, y - h - 12) + 'px';
+
+  }
+
+  const hideTip = (box) => { const t = box.querySelector('.br-tip'); if (t) t.hidden = true; };
+
+  const line = (k, v) => { const d = document.createElement('div'); if (k) { const s = document.createElement('span'); s.className = 'k'; s.textContent = k; d.append(s); } if (v) d.append(v); return d; };
+
+  const fmtData = (d) => d ? new Date(d.replace(' ', 'T')).toLocaleString('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Partenza';
+
+
+
+  function drawEquity(rows, first) {
+
+    const box = document.getElementById('grafico-conto');
+
+    box.replaceChildren();
+
+    const W = Math.max(280, box.clientWidth), H = 300, m = { t: 16, r: 64, b: 28, l: 56 };
+
+    const x = d3.scaleLinear([0, Math.max(1, rows.length - 1)], [m.l, W - m.r]);
+
+    const ext = d3.extent(rows, (d) => d.conto);
+
+    const pad = Math.max(20, (ext[1] - ext[0]) * .12);
+
+    const y = d3.scaleLinear([Math.min(ext[0], CAPITALE) - pad, Math.max(ext[1], CAPITALE) + pad], [H - m.b, m.t]).nice();
+
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+
+      .attr('aria-label', 'Saldo del conto dopo ogni operazione');
+
+    const defs = svg.append('defs');
+
+    const g = defs.append('linearGradient').attr('id', 'br-area').attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', 1);
+
+    [[0, .32], [.35, .16], [.7, .05], [1, 0]].forEach(([o, a]) => g.append('stop').attr('offset', o).attr('style', `stop-color:#e2b04a;stop-opacity:${a}`));
+
+    svg.append('g').selectAll('line').data(y.ticks(5)).join('line')
+
+      .attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', '#24365e').attr('stroke-width', 1);
+
+    svg.append('g').selectAll('text').data(y.ticks(5)).join('text')
+
+      .attr('x', m.l - 8).attr('y', (d) => y(d) + 4).attr('text-anchor', 'end').text((d) => euro.format(d).replace(',00', ''));
+
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(CAPITALE)).attr('y2', y(CAPITALE))
+
+      .attr('stroke', '#93a3c4').attr('stroke-dasharray', '4 4').attr('stroke-width', 1);
+
+    svg.append('text').attr('x', W - m.r + 6).attr('y', y(CAPITALE) + 4).text('1.000 €');
+
+    const area = d3.area().x((d, i) => x(i)).y0(H - m.b).y1((d) => y(d.conto));
+
+    svg.append('path').datum(rows).attr('d', area).attr('fill', 'url(#br-area)').attr('class', first ? 'br-fadein' : null);
+
+    const path = svg.append('path').datum(rows).attr('d', d3.line().x((d, i) => x(i)).y((d) => y(d.conto)))
+
+      .attr('fill', 'none').attr('stroke', '#e2b04a').attr('stroke-width', 2.5).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round');
+
+    if (first) { const len = path.node().getTotalLength(); path.attr('class', 'br-draw').style('--len', len); }
+
+    svg.append('g').selectAll('circle').data(rows.slice(1)).join('circle')
+
+      .attr('cx', (d, i) => x(i + 1)).attr('cy', (d) => y(d.conto)).attr('r', 3.5)
+
+      .attr('fill', (d) => d.risultato_eur > 0.5 ? '#3fd18b' : d.risultato_eur < -0.5 ? '#ff6b6b' : '#9aa7c2')
+
+      .attr('stroke', '#0a1226').attr('stroke-width', 1.5).attr('class', first ? 'br-fadein' : null);
+
+    const last = rows[rows.length - 1];
+
+    svg.append('text').attr('x', x(rows.length - 1) + 8).attr('y', y(last.conto) + 4).attr('style', 'fill:#e2b04a;font-weight:600')
+
+      .text(euro.format(last.conto).replace(',00', ''));
+
+    const hover = svg.append('circle').attr('r', 6).attr('fill', 'none').attr('stroke', '#f3d38a').attr('stroke-width', 2).attr('opacity', 0);
+
+    svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.l - m.r).attr('height', H - m.t - m.b).attr('fill', 'transparent')
+
+      .on('pointermove pointerdown', (ev) => {
+
+        const [px] = d3.pointer(ev);
+
+        const i = Math.max(0, Math.min(rows.length - 1, Math.round(x.invert(px))));
+
+        const d = rows[i];
+
+        hover.attr('cx', x(i)).attr('cy', y(d.conto)).attr('opacity', 1);
+
+        const sx = x(i) / W * box.clientWidth, sy = y(d.conto) / H * box.clientHeight;
+
+        tipAt(box, [line(fmtData(d.data)), line('', 'Conto ' + euro.format(d.conto)), d.n ? line('', 'Operazione ' + euroSign(d.risultato_eur)) : line('', 'Capitale iniziale')], sx, sy);
+
+      })
+
+      .on('pointerleave', () => { hover.attr('opacity', 0); hideTip(box); });
+
+  }
+
+
+
+  function drawBars(ops, first) {
+
+    const box = document.getElementById('grafico-barre');
+
+    box.replaceChildren();
+
+    const W = Math.max(260, box.clientWidth), H = 260, m = { t: 12, r: 8, b: 22, l: 52 };
+
+    const x = d3.scaleBand(ops.map((o) => o.n), [m.l, W - m.r]).padding(0.25);
+
+    const ext = d3.extent([0, ...ops.map((o) => Number(o.risultato_eur))]);
+
+    const y = d3.scaleLinear(ext, [H - m.b, m.t]).nice();
+
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+
+      .attr('aria-label', 'Risultato in euro di ogni segnale');
+
+    svg.append('g').selectAll('line').data(y.ticks(4)).join('line')
+
+      .attr('x1', m.l).attr('x2', W - m.r).attr('y1', y).attr('y2', y).attr('stroke', (d) => d === 0 ? '#93a3c4' : '#24365e');
+
+    svg.append('g').selectAll('text').data(y.ticks(4)).join('text')
+
+      .attr('x', m.l - 8).attr('y', (d) => y(d) + 4).attr('text-anchor', 'end').text((d) => euro.format(d).replace(',00', ''));
+
+    svg.append('g').selectAll('rect').data(ops).join('rect')
+
+      .attr('x', (o) => x(o.n)).attr('width', x.bandwidth())
+
+      .attr('y', (o) => y(Math.max(0, o.risultato_eur))).attr('height', (o) => Math.max(o.stato === 'non entrata' ? 2 : 1, Math.abs(y(o.risultato_eur) - y(0))))
+
+      .attr('rx', Math.min(4, x.bandwidth() / 2))
+
+      .attr('fill', (o) => o.stato === 'non entrata' ? '#3a4a70' : o.risultato_eur > 0.5 ? '#3fd18b' : o.risultato_eur < -0.5 ? '#ff6b6b' : '#9aa7c2')
+
+      .attr('class', (o) => first ? (o.risultato_eur < 0 ? 'br-grow down' : 'br-grow') : null)
+
+      .style('animation-delay', (o, i) => first ? (i * 25) + 'ms' : null)
+
+      .on('pointermove pointerdown', (ev, o) => {
+
+        const sx = (x(o.n) + x.bandwidth() / 2) / W * box.clientWidth, sy = y(Math.max(0, o.risultato_eur)) / H * box.clientHeight;
+
+        tipAt(box, [line(fmtData(o.data) + ' · ' + 'Oro ' + o.direzione),
+
+          line('', o.esito), line('', euroSign(Number(o.risultato_eur)))], sx, sy);
+
+      })
+
+      .on('pointerleave', () => hideTip(box));
+
+    const ticks = ops.filter((o, i) => i === 0 || i === ops.length - 1);
+
+    svg.append('g').selectAll('text').data(ticks).join('text')
+
+      .attr('x', (o) => x(o.n) + x.bandwidth() / 2).attr('y', H - 6).attr('text-anchor', (o, i) => i === 0 ? 'start' : 'end')
+
+      .text((o) => new Date(o.data.replace(' ', 'T')).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }));
+
+  }
+
+
+
+  function drawDonut(r, first) {
+
+    const box = document.getElementById('grafico-esiti');
+
+    box.replaceChildren();
+
+    const parts = [
+
+      { k: 'Vinte', v: r.vinte, c: '#3fd18b' }, { k: 'Perse', v: r.perse, c: '#ff6b6b' },
+
+      { k: 'Pareggio', v: r.pari, c: '#9aa7c2' }, { k: 'Aperti', v: r.aperte, c: '#3d7bff' },
+
+    ].filter((p) => p.v > 0);
+
+    const W = Math.max(260, box.clientWidth), H = 260, R = Math.min(W, H) / 2 - 8;
+
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+
+      .attr('aria-label', 'Esiti dei segnali');
+
+    const g = svg.append('g').attr('transform', `translate(${W / 2},${H / 2})`);
+
+    const arcs = d3.pie().sort(null).value((p) => p.v)(parts);
+
+    const arc = d3.arc().innerRadius(R * .64).outerRadius(R).cornerRadius(3).padAngle(.02);
+
+    const paths = g.selectAll('path').data(arcs).join('path').attr('fill', (a) => a.data.c).attr('d', arc);
+
+    if (first && window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+
+      paths.transition().duration(900).ease(d3.easeCubicOut).attrTween('d', (a) => { const i = d3.interpolate({ startAngle: a.startAngle, endAngle: a.startAngle }, a); return (t) => arc(i(t)); });
+
+    }
+
+    g.append('text').attr('text-anchor', 'middle').attr('y', -2)
+
+      .attr('style', 'fill:#e2b04a;font-family:var(--font-anthropic-serif);font-size:' + Math.round(R * .38) + 'px').text(pct(r.win_rate));
+
+    g.append('text').attr('text-anchor', 'middle').attr('y', R * .22).text('win rate a TP1');
+
+    const leg = document.getElementById('legenda-esiti');
+
+    leg.replaceChildren(...parts.map((p) => { const s = document.createElement('span'); const i = document.createElement('i'); i.style.background = p.c; s.append(i, p.k + ' ' + p.v); return s; }));
+
+  }
+
+
+
+  function drawTable(ops) {
+
+    const tb = document.querySelector('#tabella tbody');
+
+    tb.replaceChildren(...ops.map((o) => {
+
+      const tr = document.createElement('tr');
+
+      const td = (t, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; c.textContent = t; return c; };
+
+      const pill = document.createElement('td');
+
+      const p = document.createElement('span'); p.className = 'br-pill ' + o.stato.replace(' ', '-'); p.textContent = o.stato; pill.append(p);
+
+      const res = td(euroSign(Number(o.risultato_eur)),'num ' + (o.risultato_eur > 0.5 ? 'br-pos' : o.risultato_eur < -0.5 ? 'br-neg' : ''));
+
+      tr.append(td(String(o.n), 'num'), td(o.data), td(o.simbolo, 'br-hide-sm'), td(o.direzione), td(String(o.prezzo), 'num br-hide-sm'),
+
+        td(String(o.tp_presi), 'num'), td(String(o.tp_totali), 'num br-hide-sm'), td(o.esito), pill, res);
+
+      return tr;
+
+    }));
+
+  }
+
+
+
+  dash.onData(draw);
+
+})();
+
+</script>
+
+</main>
+</body>
+</html>
