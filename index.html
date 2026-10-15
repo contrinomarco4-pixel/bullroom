@@ -728,7 +728,7 @@ window.dash = (() => {
 
           a_tp1: ops.filter((o) => Number(o.tp_presi) >= 1).length,
 
-          win_rate: ops.length ? ops.filter((o) => Number(o.tp_presi) >= 1).length / ops.length : 0,
+          win_rate: (() => { const v = ops.filter((o) => !(o.stato === 'aperta' && Number(o.tp_presi) === 0)); return v.length ? v.filter((o) => Number(o.tp_presi) >= 1).length / v.length : 0; })(),
 
           risultato_eur: risultato,
 
