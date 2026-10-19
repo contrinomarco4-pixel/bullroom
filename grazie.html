@@ -11,7 +11,7 @@
   body { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:24px 16px; background:radial-gradient(circle at 50% 0%, #10204a 0%, var(--bg) 60%); }
   .card { width:100%; max-width:440px; background:var(--card); border:1px solid #1d2647; border-radius:24px; padding:36px 26px 30px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.5); animation:in .6s ease-out both; }
   @keyframes in { from { opacity:0; transform:translateY(16px) scale(.97); } to { opacity:1; transform:none; } }
-  img { width:120px; height:120px; border-radius:50%; object-fit:cover; border:3px solid var(--gold); box-shadow:0 0 30px rgba(47,107,255,.45); animation:pop .7s .2s ease-out both; }
+  img { width:150px; height:150px; border-radius:50%; object-fit:contain; filter:drop-shadow(0 0 24px rgba(47,107,255,.55)); animation:pop .7s .2s ease-out both; }
   @keyframes pop { from { transform:scale(.6); opacity:0; } 70% { transform:scale(1.08); } to { transform:scale(1); opacity:1; } }
   h1 { font-size:30px; margin:22px 0 10px; font-weight:900; }
   p { color:#d8deec; font-size:17px; line-height:1.5; margin:0 0 8px; }
@@ -23,7 +23,7 @@
 </head>
 <body>
   <div class="card">
-    <img src="logo.jpg" alt="BULL ROOM">
+    <img src="https://contrinomarco4-pixel.github.io/bullroom/logo-tondo.png" alt="">
     <h1>Perfetto, ci sei! 🔥</h1>
     <p>Ho ricevuto la tua richiesta.</p>
     <p>Ti scrivo io, <b>Marco</b>, su WhatsApp a breve 👊</p>
