@@ -455,10 +455,10 @@
   "prezzo": 4150.0,
   "sl": 4100.0,
   "tp_totali": 7,
-  "tp_presi": 7,
+  "tp_presi": 4,
   "ingresso": "prezzo del segnale",
-  "esito": "FULL TP7",
-  "risultato_eur": 267.43,
+  "esito": "TP4 (resto chiuso a TP4)",
+  "risultato_eur": 191.66,
   "rischio_eur": 312.06,
   "stato": "vinta",
   "stop": 0
@@ -487,12 +487,12 @@
   "prezzo": 4163.0,
   "sl": 4150.0,
   "tp_totali": 5,
-  "tp_presi": 1,
+  "tp_presi": 5,
   "ingresso": "prezzo del segnale",
-  "esito": "aperto (TP1)",
-  "risultato_eur": 6.24,
+  "esito": "FULL TP5",
+  "risultato_eur": 65.07,
   "rischio_eur": 57.94,
-  "stato": "aperta",
+  "stato": "vinta",
   "stop": 0
  }
 ]
