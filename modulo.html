@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BULL ROOM – Entra</title>
+<style>
+  :root { --bg:#05070c; --card:#0b0f1d; --line:#1d2647; --fg:#fff; --muted:#9aa3b8; --blue:#2F6BFF; --gold:#f2c230; --red:#ff4d5e; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; background:var(--bg); color:var(--fg); font-family:-apple-system,"Helvetica Neue",Arial,sans-serif; }
+  body { min-height:100vh; padding:28px 16px 40px; background:radial-gradient(circle at 50% 0%, #10204a 0%, var(--bg) 55%); }
+  .wrap { max-width:460px; margin:0 auto; }
+  .logo { display:block; width:110px; height:110px; margin:0 auto 14px; filter:drop-shadow(0 0 22px rgba(47,107,255,.55)); }
+  h1 { text-align:center; font-size:26px; font-weight:900; margin:0 0 6px; }
+  .sub { text-align:center; color:var(--muted); font-size:15px; margin:0 0 22px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:22px; padding:22px 18px; }
+  label.f { display:block; font-weight:700; font-size:15px; margin:16px 0 7px; }
+  label.f:first-child { margin-top:0; }
+  input[type=text], input[type=tel], textarea { width:100%; font:16px -apple-system,sans-serif; color:#fff; background:#0f1530; border:1px solid #26305a; border-radius:12px; padding:13px 14px; outline:none; }
+  input:focus, textarea:focus { border-color:var(--blue); }
+  textarea { min-height:84px; resize:vertical; }
+  .row { display:flex; gap:10px; }
+  .row > div { flex:1; min-width:0; }
+  .opts { display:grid; gap:10px; }
+  .opt { border:1px solid #26305a; border-radius:14px; background:#0f1530; overflow:hidden; transition:border-color .2s, background .2s; }
+  .opt.on { border-color:var(--blue); background:#10204a; }
+  .opt-head { display:flex; align-items:center; gap:12px; padding:14px; cursor:pointer; font-weight:800; font-size:16px; user-select:none; }
+  .tick { width:22px; height:22px; border-radius:7px; border:2px solid #3a4677; flex:none; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+  .opt.on .tick { background:var(--blue); border-color:var(--blue); }
+  .opt.on .tick::after { content:"✓"; color:#fff; font-size:14px; font-weight:900; }
+  .opt-body { max-height:0; opacity:0; padding:0 14px; color:#cfd6e8; font-size:14.5px; line-height:1.5; transition:max-height .35s ease, opacity .3s ease, padding .35s ease; }
+  .opt.on .opt-body { max-height:220px; opacity:1; padding:0 14px 14px; }
+  .opt-body b { color:var(--gold); }
+  .check { display:flex; gap:12px; align-items:flex-start; margin-top:14px; font-size:14.5px; color:#d8deec; cursor:pointer; line-height:1.4; }
+  .check input { width:20px; height:20px; margin:1px 0 0; accent-color:var(--blue); flex:none; }
+  .note { margin:18px 0 0; padding:12px 14px; border-radius:12px; background:#0f1530; color:#d8deec; font-size:14.5px; line-height:1.45; }
+  button { width:100%; margin-top:20px; padding:16px; border:0; border-radius:14px; background:var(--blue); color:#fff; font:800 18px -apple-system,sans-serif; cursor:pointer; }
+  button:disabled { opacity:.6; }
+  .err { color:var(--red); font-size:13px; margin-top:6px; display:none; }
+  .err.show { display:block; }
+  .disc { text-align:center; color:#6d7690; font-size:11px; margin-top:16px; line-height:1.4; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img class="logo" src="https://contrinomarco4-pixel.github.io/bullroom/logo-tondo.png" alt="">
+  <h1>Entra in BULL ROOM</h1>
+  <p class="sub">1 minuto. Poi ti scrivo io personalmente.</p>
+
+  <form class="card" id="f" action="https://eu-submit.jotform.com/submit/262784712503054" method="post" target="invio" accept-charset="utf-8" novalidate>
+    <input type="hidden" name="formID" value="262784712503054">
+    <input type="hidden" name="simple_spc" value="262784712503054-262784712503054">
+    <input type="hidden" name="website" value="">
+    <input type="hidden" name="submitSource" value="bullroom-modulo">
+    <input type="hidden" name="q7_q7_widget_TermsAndConditions5" id="consensoVal" value="">
+
+    <div class="row">
+      <div><label class="f" for="nome">Nome</label><input type="text" id="nome" name="q2_q2_textbox0" autocomplete="given-name"></div>
+      <div><label class="f" for="cognome">Cognome</label><input type="text" id="cognome" name="q3_q3_textbox1" autocomplete="family-name"></div>
+    </div>
+    <div class="err" id="e-nome">Scrivi nome e cognome.</div>
+
+    <label class="f" for="tel">Numero di telefono (WhatsApp)</label>
+    <input type="tel" id="tel" name="q4_q4_phone2[full]" placeholder="333 123 4567" autocomplete="tel">
+    <div class="err" id="e-tel">Scrivi un numero valido.</div>
+
+    <label class="f" for="esp">Che esperienza hai avuto nel trading?</label>
+    <textarea id="esp" name="q10_cheEsperienza" placeholder="Anche zero va benissimo, scrivi come sei messo"></textarea>
+    <div class="err" id="e-esp">Raccontami in due parole.</div>
+
+    <label class="f">Cosa ti interessa?</label>
+    <div class="opts" id="opts">
+      <div class="opt" data-v="📈 Copy trading">
+        <div class="opt-head"><span class="tick"></span>📈 Copy trading</div>
+        <div class="opt-body"><b>Il pilota automatico.</b> Un software replica una strategia direttamente sul tuo conto: tu non devi stare davanti ai grafici. I soldi restano sempre sul TUO conto personale e il mio compenso è il 35% dei profitti generati: se non guadagni tu, non guadagno io. 🤝</div>
+      </div>
+      <div class="opt" data-v="🔔 Sala segnali">
+        <div class="opt-head"><span class="tick"></span>🔔 Sala segnali</div>
+        <div class="opt-body"><b>Ti arriva la notifica, tu copi.</b> Segnali su oro e Bitcoin con entrata, obiettivo e stop già decisi. Li copi tu sul tuo conto in pochi secondi, e ti mando una guida in PDF che ti spiega passo passo come farlo, anche se parti da zero. 📲</div>
+      </div>
+      <div class="opt" data-v="🤝 Diventare IB">
+        <div class="opt-head"><span class="tick"></span>🤝 Diventare IB</div>
+        <div class="opt-body"><b>Da trader a punto di riferimento.</b> Porti nuove persone a fare trading e le segui: il broker ti riconosce una parte delle commissioni. Entri nella mia community di IB e ti spiego come farlo nel modo giusto. 🚀</div>
+      </div>
+      <div class="opt" data-v="🔥 Tutto">
+        <div class="opt-head"><span class="tick"></span>🔥 Tutto</div>
+        <div class="opt-body"><b>Vuoi vedere tutto?</b> Ti spiego copy trading, sala segnali e IB, e scegliamo insieme cosa fa per te. 💪</div>
+      </div>
+    </div>
+    <div id="optInputs"></div>
+    <div class="err" id="e-opt">Scegli almeno una cosa.</div>
+
+    <label class="check"><input type="checkbox" id="eta"> Confermo di avere almeno 18 anni</label>
+    <label class="check"><input type="checkbox" id="consenso"> Acconsento al trattamento dei dati e a essere ricontattato</label>
+    <input type="hidden" name="q12_confermoDi" id="etaVal" value="">
+    <div class="err" id="e-check">Spunta le due caselle per continuare.</div>
+
+    <p class="note">💼 Per la sala segnali e il copy trading serve aprire un conto di trading con un capitale.</p>
+
+    <button type="submit" id="go">Invia 👊</button>
+    <p class="disc">Il trading comporta rischi: investi solo capitale che puoi permetterti di perdere. Contenuto educativo, non costituisce consulenza finanziaria.</p>
+  </form>
+</div>
+<iframe name="invio" id="invio" title="invio" style="display:none"></iframe>
+<script>
+const $ = id => document.getElementById(id);
+const scelte = new Set();
+document.querySelectorAll('.opt').forEach(o => {
+  o.querySelector('.opt-head').onclick = () => {
+    const v = o.dataset.v;
+    if (scelte.has(v)) { scelte.delete(v); o.classList.remove('on'); } else { scelte.add(v); o.classList.add('on'); }
+    $('e-opt').classList.remove('show');
+  };
+});
+let inviato = false;
+$('f').onsubmit = e => {
+  const show = (id, bad) => { $(id).classList.toggle('show', bad); return bad; };
+  const nums = $('tel').value.replace(/[^\d+]/g, '');
+  const errori = [
+    show('e-nome', !$('nome').value.trim() || !$('cognome').value.trim()),
+    show('e-tel', nums.replace('+', '').length < 8),
+    show('e-esp', !$('esp').value.trim()),
+    show('e-opt', scelte.size === 0),
+    show('e-check', !$('eta').checked || !$('consenso').checked),
+  ];
+  if (errori.some(Boolean)) { e.preventDefault(); return; }
+  $('optInputs').innerHTML = '';
+  scelte.forEach(v => { const i = document.createElement('input'); i.type = 'hidden'; i.name = 'q11_cosaTi[]'; i.value = v; $('optInputs').appendChild(i); });
+  $('etaVal').value = 'Confermo di avere almeno 18 anni';
+  $('consensoVal').value = 'Accettato';
+  $('go').disabled = true; $('go').textContent = 'Invio in corso…';
+  inviato = true;
+  // dopo l'invio a Jotform si va sulla pagina di BULL ROOM
+  setTimeout(() => location.href = 'grazie.html', 6000);
+};
+$('invio').onload = () => { if (inviato) location.href = 'grazie.html'; };
+</script>
+</body>
+</html>
