@@ -551,12 +551,12 @@
     "prezzo": 4119.0,
     "sl": 4105.0,
     "tp_totali": 7,
-    "tp_presi": 3,
+    "tp_presi": 7,
     "ingresso": "prezzo del segnale",
-    "esito": "aperta (TP3)",
-    "risultato_eur": 42.79,
+    "esito": "FULL TP7",
+    "risultato_eur": 184.51,
     "rischio_eur": 87.35,
-    "stato": "aperta",
+    "stato": "vinta",
     "stop": 0
   }
 ]
