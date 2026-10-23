@@ -558,5 +558,21 @@
     "rischio_eur": 87.35,
     "stato": "vinta",
     "stop": 0
+  },
+  {
+    "n": 36,
+    "data": "2026-10-23 18:23",
+    "simbolo": "XAUUSD",
+    "direzione": "BUY",
+    "prezzo": 4003.0,
+    "sl": 3963.0,
+    "tp_totali": 8,
+    "tp_presi": 0,
+    "ingresso": "prezzo del segnale",
+    "esito": "aperta",
+    "risultato_eur": 0.0,
+    "rischio_eur": 285.24,
+    "stato": "aperta",
+    "stop": 0
   }
 ]
