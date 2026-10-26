@@ -567,12 +567,12 @@
     "prezzo": 4003.0,
     "sl": 3963.0,
     "tp_totali": 8,
-    "tp_presi": 0,
+    "tp_presi": 1,
     "ingresso": "prezzo del segnale",
-    "esito": "aperta",
-    "risultato_eur": 0.0,
+    "esito": "BE dopo TP1",
+    "risultato_eur": 8.91,
     "rischio_eur": 285.24,
-    "stato": "aperta",
+    "stato": "vinta",
     "stop": 0
   }
 ]
