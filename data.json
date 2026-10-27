@@ -583,10 +583,10 @@
     "prezzo": 4020.0,
     "sl": 4010.0,
     "tp_totali": 4,
-    "tp_presi": 0,
+    "tp_presi": 2,
     "ingresso": "prezzo del segnale",
-    "esito": "aperta",
-    "risultato_eur": 0.0,
+    "esito": "aperta (TP2)",
+    "risultato_eur": 14.26,
     "rischio_eur": 35.65,
     "stato": "aperta",
     "stop": 0
