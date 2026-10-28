@@ -615,12 +615,12 @@
     "prezzo": 4035.0,
     "sl": 4015.0,
     "tp_totali": 6,
-    "tp_presi": 5,
+    "tp_presi": 6,
     "ingresso": "prezzo del segnale",
-    "esito": "aperta (TP5)",
-    "risultato_eur": 52.59,
+    "esito": "FULL TP6",
+    "risultato_eur": 74.88,
     "rischio_eur": 106.96,
-    "stato": "aperta",
+    "stato": "vinta",
     "stop": 0
   }
 ]
