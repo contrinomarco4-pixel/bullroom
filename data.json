@@ -638,5 +638,21 @@
     "rischio_eur": 26.74,
     "stato": "persa",
     "stop": 1
+  },
+  {
+    "n": 41,
+    "data": "2026-10-29 23:27",
+    "simbolo": "XAUUSD",
+    "direzione": "SELL",
+    "prezzo": 4020.0,
+    "sl": 4035.0,
+    "tp_totali": 4,
+    "tp_presi": 0,
+    "ingresso": "prezzo del segnale",
+    "esito": "aperta",
+    "risultato_eur": 0.0,
+    "rischio_eur": 53.48,
+    "stato": "aperta",
+    "stop": 0
   }
 ]
