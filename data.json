@@ -633,10 +633,10 @@
     "tp_totali": 3,
     "tp_presi": 0,
     "ingresso": "prezzo del segnale",
-    "esito": "aperta",
-    "risultato_eur": 0.0,
+    "esito": "SL",
+    "risultato_eur": -26.74,
     "rischio_eur": 26.74,
-    "stato": "aperta",
-    "stop": 0
+    "stato": "persa",
+    "stop": 1
   }
 ]
