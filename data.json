@@ -647,12 +647,12 @@
     "prezzo": 4020.0,
     "sl": 4035.0,
     "tp_totali": 4,
-    "tp_presi": 2,
+    "tp_presi": 4,
     "ingresso": "prezzo del segnale",
-    "esito": "aperta (TP2)",
-    "risultato_eur": 22.28,
+    "esito": "FULL TP4",
+    "risultato_eur": 62.4,
     "rischio_eur": 53.48,
-    "stato": "aperta",
+    "stato": "vinta",
     "stop": 0
   }
 ]
