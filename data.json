@@ -711,12 +711,12 @@
     "prezzo": 3895.0,
     "sl": 3885.0,
     "tp_totali": 4,
-    "tp_presi": 0,
+    "tp_presi": 4,
     "ingresso": "prezzo del segnale",
-    "esito": "aperta",
-    "risultato_eur": 0.0,
+    "esito": "FULL TP4",
+    "risultato_eur": 38.33,
     "rischio_eur": 35.65,
-    "stato": "aperta",
+    "stato": "vinta",
     "stop": 0
   }
 ]
