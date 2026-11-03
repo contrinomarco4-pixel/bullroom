@@ -697,9 +697,25 @@
     "tp_totali": 5,
     "tp_presi": 0,
     "ingresso": "prezzo del segnale",
+    "esito": "SL",
+    "risultato_eur": -66.85,
+    "rischio_eur": 66.85,
+    "stato": "persa",
+    "stop": 1
+  },
+  {
+    "n": 45,
+    "data": "2026-11-03 10:02",
+    "simbolo": "XAUUSD",
+    "direzione": "BUY",
+    "prezzo": 3895.0,
+    "sl": 3885.0,
+    "tp_totali": 4,
+    "tp_presi": 0,
+    "ingresso": "prezzo del segnale",
     "esito": "aperta",
     "risultato_eur": 0.0,
-    "rischio_eur": 66.85,
+    "rischio_eur": 35.65,
     "stato": "aperta",
     "stop": 0
   }
