@@ -743,12 +743,12 @@
     "prezzo": 4041.0,
     "sl": 4026.0,
     "tp_totali": 5,
-    "tp_presi": 0,
+    "tp_presi": 5,
     "ingresso": "prezzo del segnale",
-    "esito": "aperta",
-    "risultato_eur": 0.0,
+    "esito": "FULL TP5",
+    "risultato_eur": 46.35,
     "rischio_eur": 66.85,
-    "stato": "aperta",
+    "stato": "vinta",
     "stop": 0
   }
 ]
