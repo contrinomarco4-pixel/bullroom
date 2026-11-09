@@ -782,5 +782,21 @@
     "rischio_eur": 32.09,
     "stato": "vinta",
     "stop": 0
+  },
+  {
+    "n": 50,
+    "data": "2026-11-09 18:30",
+    "simbolo": "XAUUSD",
+    "direzione": "BUY",
+    "prezzo": 4105.0,
+    "sl": 4090.0,
+    "tp_totali": 4,
+    "tp_presi": 0,
+    "ingresso": "prezzo del segnale",
+    "esito": "aperta",
+    "risultato_eur": 0.0,
+    "rischio_eur": 53.48,
+    "stato": "aperta",
+    "stop": 0
   }
 ]
