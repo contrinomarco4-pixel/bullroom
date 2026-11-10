@@ -727,12 +727,12 @@
     "prezzo": 3938.0,
     "sl": 3918.0,
     "tp_totali": 3,
-    "tp_presi": 0,
+    "tp_presi": 3,
     "ingresso": "prezzo del segnale",
-    "esito": "aperta",
-    "risultato_eur": 0.0,
+    "esito": "FULL TP3",
+    "risultato_eur": 70.42,
     "rischio_eur": 53.48,
-    "stato": "aperta",
+    "stato": "vinta",
     "stop": 0
   },
   {
