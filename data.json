@@ -905,10 +905,10 @@
     "tp_totali": 4,
     "tp_presi": 0,
     "ingresso": "prezzo del segnale",
-    "esito": "aperta",
-    "risultato_eur": 0.0,
+    "esito": "SL",
+    "risultato_eur": -35.65,
     "rischio_eur": 35.65,
-    "stato": "aperta",
-    "stop": 0
+    "stato": "persa",
+    "stop": 1
   }
 ]
