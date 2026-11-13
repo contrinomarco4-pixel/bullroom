@@ -887,10 +887,10 @@
     "prezzo": 3872.0,
     "sl": 3861.0,
     "tp_totali": 4,
-    "tp_presi": 0,
+    "tp_presi": 1,
     "ingresso": "prezzo del segnale",
-    "esito": "aperta",
-    "risultato_eur": 0.0,
+    "esito": "aperta (TP1)",
+    "risultato_eur": 12.48,
     "rischio_eur": 39.22,
     "stato": "aperta",
     "stop": 0
