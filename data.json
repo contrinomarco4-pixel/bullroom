@@ -935,10 +935,10 @@
     "prezzo": 3865.0,
     "sl": 3885.0,
     "tp_totali": 5,
-    "tp_presi": 0,
+    "tp_presi": 1,
     "ingresso": "prezzo del segnale",
-    "esito": "aperta",
-    "risultato_eur": 0.0,
+    "esito": "aperta (TP1)",
+    "risultato_eur": 8.91,
     "rischio_eur": 89.14,
     "stato": "aperta",
     "stop": 0
